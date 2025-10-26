@@ -277,15 +277,15 @@ function getColorName(color, category) {
 
   const colorNames = {
     blue: {
-      name: "Academic Buildings",
+      name: "Academic",
       icon: "bi bi-buildings", // University building icon
     },
     green: {
-      name: "Nature/sports",
+      name: "Sports",
       icon: "bi bi-tree", // Sports trophy icon
     },
     red: {
-      name: "Medical/emergency",
+      name: "Emergency",
       icon: "bi bi-heart-pulse", // Warning icon
     },
     orange: {
@@ -293,7 +293,7 @@ function getColorName(color, category) {
       icon: "bi bi-house", // House icon
     },
     purple: {
-      name: "food/drink",
+      name: "Food/drink",
       icon: "bi bi-cup-hot", // Food/drink icon
     },
     "#F7DC6F": {
@@ -406,3 +406,4 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 window.showUsername = showUsername;
+
