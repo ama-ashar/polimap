@@ -23,6 +23,7 @@ const isDarkMode = localStorage.getItem("darkMode") === "true";
 let liveTracking = false;
 let liveTrackingInterval = null;
 let bufferDistance = 10; // meters - adjust this value as needed
+let bufferUserChanged = false;
 let currentRoute = null;
 let routeSegments = [];
 let currentSegmentIndex = 0;
@@ -475,6 +476,7 @@ function showRouteTypeSelector() {
       bufferRange.addEventListener('input', function() {
         bufferDistance = parseInt(this.value);
         bufferValue.textContent = bufferDistance;
+        bufferUserChanged = true;
       });
     }
 
@@ -537,6 +539,21 @@ function showRouteTypeSelector() {
         
         const routeType = this.dataset.type;
         currentRouteProfile = routeType;
+        // Only update bufferDistance to a profile default when the user
+        // hasn't manually changed the buffer. This prevents overwriting a
+        // user-set buffer during live updates/recalculations.
+        if (!bufferUserChanged) {
+          if (routeType === 'foot-walking') {
+            bufferDistance = 20;
+          } else {
+            bufferDistance = 40;
+          }
+          if (bufferRange && bufferValue) {
+            bufferRange.value = bufferDistance;
+            bufferValue.textContent = bufferDistance;
+          }
+        }
+
         calculateRoute(routeType);
         
         // Auto-collapse after selection on mobile
@@ -550,21 +567,17 @@ function showRouteTypeSelector() {
       });
     });
 
-    // Auto-select driving by default
-    calculateRoute('driving-car');
+    // Auto-calculate route only if we don't already have a routing control
+    // (prevents resetting user-chosen buffer values when the selector is rebuilt)
+    if (!routingControl) {
+      calculateRoute(currentRouteProfile || 'driving-car');
+    }
   }, 100);
 }
 
 
 function calculateRoute(profile = 'driving-car') {
-  // Set buffer based on route type
-  if (profile === 'foot-walking') {
-    bufferDistance = 20; // Smaller buffer for walking
-  } else {
-    bufferDistance = 40; // Larger buffer for driving
-  }
-  
-  // Update UI if elements exist
+  // Update UI if elements exist (keep bufferDistance as user's setting)
   const bufferRange = document.getElementById('bufferRange');
   const bufferValue = document.getElementById('bufferValue');
   if (bufferRange && bufferValue) {
@@ -919,6 +932,21 @@ function updateRoutingControlStyle(isDark) {
 }
 
 function showToast(message, type = 'info') {
+  // Prevent duplicate toasts: remove any existing toast that contains the same message
+  // or is the same type. This is defensive because multiple modules inject
+  // their own toast implementations/styles and can create visually identical
+  // elements. We prefer showing the newest one only.
+  const existingToasts = Array.from(document.querySelectorAll('.custom-toast'));
+  const normalizedMessage = String(message).trim().toLowerCase();
+  for (const t of existingToasts) {
+    const tText = (t.textContent || '').trim().toLowerCase();
+    const hasSameText = tText && tText.indexOf(normalizedMessage) !== -1;
+    const isSameType = type && t.classList && t.classList.contains(`custom-toast-${type}`);
+    if (hasSameText || isSameType) {
+      t.remove();
+    }
+  }
+
   const toast = document.createElement('div');
   toast.className = `custom-toast custom-toast-${type}`;
   toast.innerHTML = `
@@ -927,9 +955,9 @@ function showToast(message, type = 'info') {
       <span>${message}</span>
     </div>
   `;
-  
+
   document.body.appendChild(toast);
-  
+
   setTimeout(() => {
     if (toast.parentNode) {
       toast.style.animation = 'toastSlideOut 0.3s ease';
