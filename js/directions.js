@@ -449,7 +449,7 @@ function showRouteTypeSelector() {
           <!-- Buffer Control -->
           <div class="buffer-control mt-3">
             <label class="form-label small mb-2">Live Tracking Buffer: <span id="bufferValue">${bufferDistance}</span>m</label>
-            <input type="range" class="form-range" id="bufferRange" min="10" max="130" value="${bufferDistance}" step="10">
+            <input type="range" class="form-range" id="bufferRange" min="20" max="130" value="${bufferDistance}" step="10">
             <div class="form-text small">Route recalculates if you deviate beyond this distance</div>
           </div>
           
@@ -1265,3 +1265,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize
 showUsername();
+
